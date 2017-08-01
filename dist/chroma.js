@@ -2,14 +2,12 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var request = require('request-promise');
 
 var Chroma = function () {
-    function Chroma(app) {
+    function Chroma(app, callback) {
         var _this = this;
 
         _classCallCheck(this, Chroma);
@@ -26,6 +24,7 @@ var Chroma = function () {
             body: app_data
         }).then(function (res) {
             _this._uri = res.uri;
+            _this._ready = true;
             _this._heartbeat = setInterval(function () {
                 return request({
                     uri: _this._uri + '/heartbeat',
@@ -33,7 +32,9 @@ var Chroma = function () {
                     body: {},
                     json: true
                 });
-            });
+            }, 5000);
+        }).then(function () {
+            return callback && callback(_this);
         });
     }
 
@@ -41,7 +42,9 @@ var Chroma = function () {
         key: 'set',
         value: function set(_ref) {
             var device = _ref.device,
-                body = _objectWithoutProperties(_ref, ['device']);
+                _ref$method = _ref.method,
+                method = _ref$method === undefined ? 'PUT' : _ref$method,
+                body = _ref.body;
 
             if (!this._ready) {
                 throw new Error("Chroma has not finished initiating. Cannot set state.");
@@ -49,7 +52,7 @@ var Chroma = function () {
                 if (this._app.device_supported.includes(device)) {
                     return request({
                         uri: this._uri + '/' + device,
-                        method: 'PUT',
+                        method: method,
                         body: body,
                         json: true
                     });

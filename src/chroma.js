@@ -1,7 +1,7 @@
 const request = require('request-promise');
 
 class Chroma {
-    constructor(app){
+    constructor(app,callback){
         this._app = app;
         this._ready = false;
         this._uri = null;
@@ -14,6 +14,7 @@ class Chroma {
             body:app_data
         }).then(res=>{
             this._uri = res.uri;
+            this._ready = true;
             this._heartbeat = setInterval(
                 ()=>request({
                     uri: this._uri + '/heartbeat',
@@ -21,8 +22,9 @@ class Chroma {
                     body:{},
                     json:true
                 })
-            );
-        });
+            ,5000);
+        }).then(()=>callback && callback(this));
+
     }
 
     set({device, method='PUT', body}){
