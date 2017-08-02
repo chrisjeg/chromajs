@@ -1,59 +1,54 @@
 const request = require('request-promise');
 
 class Chroma {
-    constructor(app,callback){
-        this._app = app;
-        this._ready = false;
-        this._uri = null;
-        this._heartbeat = null;
+    constructor({uri, session, application}){
+        this._uri = uri;
+        this._session = session;
+        this._application = application;
+        this._heartbeat = setInterval(
+            ()=>request({
+                uri: this._uri + '/heartbeat',
+                method:'PUT',
+                body:{},
+                json:true
+            })
+        ,5000);
+    }
 
-        request({
+    static initialize(application){
+        return request({
             uri:'http://localhost:54235/razer/chromasdk',
             method:'POST',
             json:true,
-            body:app_data
-        }).then(res=>{
-            this._uri = res.uri;
-            this._ready = true;
-            this._heartbeat = setInterval(
-                ()=>request({
-                    uri: this._uri + '/heartbeat',
-                    method:'PUT',
-                    body:{},
-                    json:true
-                })
-            ,5000);
-        }).then(()=>callback && callback(this));
-
+            body:application
+        }).then(response=>({
+            uri: response.uri,
+            session: response.session,
+            application
+        }))
     }
 
     set({device, method='PUT', body}){
-        if(!this._ready){
-            throw new Error("Chroma has not finished initiating. Cannot set state.")
+        if(this._application.device_supported.includes(device)){
+            return request({
+                uri: `${this._uri}/${device}`,
+                method,
+                body,
+                json:true
+            })
         } else {
-            if(this._app.device_supported.includes(device)){
-                return request({
-                    uri: `${this._uri}/${device}`,
-                    method,
-                    body,
-                    json:true
-                })
-            } else {
-                throw new Error("Device is not supported by this app")
-            }
+            throw new Error("Device is not supported by this app")
         }
     }
 
 
     cleanup(){
-        if(this._ready){
-            clearInterval(this._heartbeat);
-            return request({
-                uri: this._uri,
-                method:'DELETE'
-            })
-        } else {
-            throw new Error("Chroma has not finished initiating. Cannot clean up.")
-        }
+        clearInterval(this._heartbeat);
+        return request({
+            uri: this._uri,
+            method:'DELETE'
+        })
     }
 }
+
+module.exports = Chroma;

@@ -7,74 +7,75 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var request = require('request-promise');
 
 var Chroma = function () {
-    function Chroma(app, callback) {
+    function Chroma(_ref) {
         var _this = this;
+
+        var uri = _ref.uri,
+            session = _ref.session,
+            application = _ref.application;
 
         _classCallCheck(this, Chroma);
 
-        this._app = app;
-        this._ready = false;
-        this._uri = null;
-        this._heartbeat = null;
-
-        request({
-            uri: 'http://localhost:54235/razer/chromasdk',
-            method: 'POST',
-            json: true,
-            body: app_data
-        }).then(function (res) {
-            _this._uri = res.uri;
-            _this._ready = true;
-            _this._heartbeat = setInterval(function () {
-                return request({
-                    uri: _this._uri + '/heartbeat',
-                    method: 'PUT',
-                    body: {},
-                    json: true
-                });
-            }, 5000);
-        }).then(function () {
-            return callback && callback(_this);
-        });
+        this._uri = uri;
+        this._session = session;
+        this._application = application;
+        this._heartbeat = setInterval(function () {
+            return request({
+                uri: _this._uri + '/heartbeat',
+                method: 'PUT',
+                body: {},
+                json: true
+            });
+        }, 5000);
     }
 
     _createClass(Chroma, [{
         key: 'set',
-        value: function set(_ref) {
-            var device = _ref.device,
-                _ref$method = _ref.method,
-                method = _ref$method === undefined ? 'PUT' : _ref$method,
-                body = _ref.body;
+        value: function set(_ref2) {
+            var device = _ref2.device,
+                _ref2$method = _ref2.method,
+                method = _ref2$method === undefined ? 'PUT' : _ref2$method,
+                body = _ref2.body;
 
-            if (!this._ready) {
-                throw new Error("Chroma has not finished initiating. Cannot set state.");
+            if (this._application.device_supported.includes(device)) {
+                return request({
+                    uri: this._uri + '/' + device,
+                    method: method,
+                    body: body,
+                    json: true
+                });
             } else {
-                if (this._app.device_supported.includes(device)) {
-                    return request({
-                        uri: this._uri + '/' + device,
-                        method: method,
-                        body: body,
-                        json: true
-                    });
-                } else {
-                    throw new Error("Device is not supported by this app");
-                }
+                throw new Error("Device is not supported by this app");
             }
         }
     }, {
         key: 'cleanup',
         value: function cleanup() {
-            if (this._ready) {
-                clearInterval(this._heartbeat);
-                return request({
-                    uri: this._uri,
-                    method: 'DELETE'
-                });
-            } else {
-                throw new Error("Chroma has not finished initiating. Cannot clean up.");
-            }
+            clearInterval(this._heartbeat);
+            return request({
+                uri: this._uri,
+                method: 'DELETE'
+            });
+        }
+    }], [{
+        key: 'initialize',
+        value: function initialize(application) {
+            return request({
+                uri: 'http://localhost:54235/razer/chromasdk',
+                method: 'POST',
+                json: true,
+                body: application
+            }).then(function (response) {
+                return {
+                    uri: response.uri,
+                    session: response.session,
+                    application: application
+                };
+            });
         }
     }]);
 
     return Chroma;
 }();
+
+module.exports = Chroma;
