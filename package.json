@@ -1,6 +1,6 @@
 {
   "name": "razerchroma",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Pure JS Razer Chroma bindings",
   "main": "dist/chroma.js",
   "scripts": {
@@ -14,9 +14,9 @@
     "request": "^2.81.0",
     "request-promise": "^4.2.1"
   },
-  "repository" : { 
-    "type" : "git",
-    "url" : "https://github.com/chrisjeg/chromajs.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chrisjeg/chromajs.git"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
