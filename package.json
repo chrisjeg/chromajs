@@ -8,11 +8,15 @@
     "build": "babel src --out-dir dist",
     "prepublishOnly": "npm run build"
   },
-  "author": "",
+  "author": "Chris Jeganathan",
   "license": "MIT",
   "dependencies": {
     "request": "^2.81.0",
     "request-promise": "^4.2.1"
+  },
+  "repository" : { 
+    "type" : "git",
+    "url" : "https://github.com/chrisjeg/chromajs.git"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
