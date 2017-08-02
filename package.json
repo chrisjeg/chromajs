@@ -1,5 +1,5 @@
 {
-  "name": "chromajs",
+  "name": "razerchroma",
   "version": "1.0.0",
   "description": "Pure JS Razer Chroma bindings",
   "main": "dist/chroma.js",
